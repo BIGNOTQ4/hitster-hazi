@@ -1,92 +1,106 @@
 [
-  {
-    "id": "001",
-    "artist": "Avicii",
-    "title": "Wake Me Up",
-    "year": 2013,
-    "youtube": {
-      "videoId": "IcrbM1l_BoI"
+    {
+        "id": "001",
+        "artist": "Avicii",
+        "title": "Wake Me Up",
+        "year": 2013,
+        "youtube": {
+            "videoId": "IcrbM1l_BoI"
+        },
+        "spotify": {
+            "trackId": "0nrRP2bk19rLc0orkWPQk2"
+        },
+        "playback": {
+            "minStart": 20,
+            "maxStart": 210,
+            "clipLength": 20
+        },
+        "category": [
+            "2010s",
+            "international"
+        ]
     },
-    "spotify": {
-      "trackId": ""
+    {
+        "id": "002",
+        "artist": "Lady Gaga",
+        "title": "Poker Face",
+        "year": 2008,
+        "youtube": {
+            "videoId": "bESGLojNYSo"
+        },
+        "spotify": {
+            "trackId": "1QV6tiMFM6fSOKOGLMHYYg"
+        },
+        "playback": {
+            "minStart": 20,
+            "maxStart": 200,
+            "clipLength": 20
+        },
+        "category": [
+            "2000s",
+            "international"
+        ]
     },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 210,
-      "clipLength": 25
+    {
+        "id": "003",
+        "artist": "Eminem",
+        "title": "Without Me",
+        "year": 2002,
+        "youtube": {
+            "videoId": "YVkUvmDQ3HY"
+        },
+        "spotify": {
+            "trackId": "7lQ8MOhq6IN2w8EYcFNSUk"
+        },
+        "playback": {
+            "minStart": 20,
+            "maxStart": 250,
+            "clipLength": 25
+        },
+        "category": [
+            "2000s",
+            "international"
+        ]
     },
-    "category": ["2010s", "international"]
-  },
-  {
-    "id": "002",
-    "artist": "Lady Gaga",
-    "title": "Poker Face",
-    "year": 2008,
-    "youtube": {
-      "videoId": "bESGLojNYSo"
+    {
+        "id": "004",
+        "artist": "The Weeknd",
+        "title": "Blinding Lights",
+        "year": 2019,
+        "youtube": {
+            "videoId": "4NRXx6U8ABQ"
+        },
+        "spotify": {
+            "trackId": "0VjIjW4GlUZAMYd2vXMi3b"
+        },
+        "playback": {
+            "minStart": 20,
+            "maxStart": 225,
+            "clipLength": 20
+        },
+        "category": [
+            "2010s",
+            "international"
+        ]
     },
-    "spotify": {
-      "trackId": ""
-    },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 200,
-      "clipLength": 25
-    },
-    "category": ["2000s", "international"]
-  },
-  {
-    "id": "003",
-    "artist": "Eminem",
-    "title": "Without Me",
-    "year": 2002,
-    "youtube": {
-      "videoId": "YVkUvmDQ3HY"
-    },
-    "spotify": {
-      "trackId": "7lQ8MOhq6IN2w8EYcFNSUk"
-    },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 250,
-      "clipLength": 25
-    },
-    "category": ["2000s", "international"]
-  },
-  {
-    "id": "004",
-    "artist": "The Weeknd",
-    "title": "Blinding Lights",
-    "year": 2019,
-    "youtube": {
-      "videoId": "4NRXx6U8ABQ"
-    },
-    "spotify": {
-      "trackId": ""
-    },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 225,
-      "clipLength": 25
-    },
-    "category": ["2010s", "international"]
-  },
-  {
-    "id": "005",
-    "artist": "TEST",
-    "title": "YouTube API Test",
-    "year": 2000,
-    "youtube": {
-      "videoId": "M7lc1UVf-VE"
-    },
-    "spotify": {
-      "trackId": ""
-    },
-    "playback": {
-      "minStart": 5,
-      "maxStart": 60,
-      "clipLength": 25
-    },
-    "category": ["test"]
-  }
+    {
+        "id": "005",
+        "artist": "bongor",
+        "title": "APA",
+        "year": 2025,
+        "youtube": {
+            "videoId": "JY1NR3Fc-r8"
+        },
+        "spotify": {
+            "trackId": "3dhQre6BWfHYtFgPeoQLM5"
+        },
+        "playback": {
+            "minStart": 10,
+            "maxStart": 180,
+            "clipLength": 20
+        },
+        "category": [
+            "test"
+        ]
+    }
 ]

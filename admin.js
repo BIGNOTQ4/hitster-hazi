@@ -1,5 +1,7 @@
 let songs = [];
 
+let editingSongId = null;
+
 const PUBLIC_BASE_URL =
     "https://bignotq4.github.io/hitster-hazi/";
 
@@ -33,6 +35,8 @@ async function loadSongs() {
 
         updateNextCardId();
 
+        setupCancelEditButton();
+
     } catch (error) {
 
         console.error(
@@ -55,9 +59,7 @@ async function loadSongs() {
 
 function getNextCardId() {
 
-    if (
-        !songs.length
-    ) {
+    if (!songs.length) {
 
         return "001";
     }
@@ -83,20 +85,34 @@ function getNextCardId() {
 
 function updateNextCardId() {
 
-    document.getElementById(
-        "nextCardId"
-    ).textContent =
-        getNextCardId();
+    const nextCardElement =
+        document.getElementById(
+            "nextCardId"
+        );
+
+
+    if (!nextCardElement) {
+
+        return;
+    }
+
+
+    if (editingSongId) {
+
+        nextCardElement.textContent =
+            editingSongId +
+            " – SZERKESZTÉS";
+
+    } else {
+
+        nextCardElement.textContent =
+            getNextCardId();
+    }
 }
 
 
 // ======================================================
 // SPOTIFY TRACK ID KINYERÉSE
-//
-// Elfogadja:
-// https://open.spotify.com/track/ID
-// spotify:track:ID
-// közvetlen ID
 // ======================================================
 
 function extractSpotifyTrackId(value) {
@@ -182,7 +198,7 @@ function extractSpotifyTrackId(value) {
     }
 
 
-    // Ha csak maga az ID
+    // közvetlen ID
     if (
         /^[A-Za-z0-9]{15,30}$/.test(
             input
@@ -219,7 +235,6 @@ function extractYouTubeId(value) {
     }
 
 
-    // youtube.com/watch?v=
     try {
 
         const url =
@@ -245,7 +260,6 @@ function extractYouTubeId(value) {
             }
 
 
-            // /shorts/ID
             if (
                 url.pathname.startsWith(
                     "/shorts/"
@@ -257,7 +271,6 @@ function extractYouTubeId(value) {
             }
 
 
-            // /embed/ID
             if (
                 url.pathname.startsWith(
                     "/embed/"
@@ -288,7 +301,6 @@ function extractYouTubeId(value) {
     }
 
 
-    // Ha közvetlen video ID
     if (
         /^[A-Za-z0-9_-]{11}$/.test(
             input
@@ -304,14 +316,10 @@ function extractYouTubeId(value) {
 
 
 // ======================================================
-// DAL HOZZÁADÁSA
+// FORM ADATAINAK KIOLVASÁSA
 // ======================================================
 
-function addSong() {
-
-    const id =
-        getNextCardId();
-
+function getSongFormData() {
 
     const artist =
         document
@@ -401,91 +409,157 @@ function addSong() {
         );
 
 
-    // ==================================================
-    // VALIDÁCIÓ
-    // ==================================================
+    return {
+
+        artist,
+        title,
+        year,
+
+        spotifyInput,
+        spotifyTrackId,
+
+        youtubeInput,
+        youtubeVideoId,
+
+        minStart,
+        maxStart,
+        clipLength
+    };
+}
+
+
+// ======================================================
+// VALIDÁCIÓ
+// ======================================================
+
+function validateSongForm(data) {
 
     if (
-        !artist ||
-        !title ||
-        !year
+        !data.artist ||
+        !data.title ||
+        !data.year
     ) {
 
         alert(
             "Az előadó, a dal címe és az év kötelező."
         );
 
-        return;
+        return false;
     }
 
 
     if (
-        spotifyInput &&
-        !spotifyTrackId
+        data.spotifyInput &&
+        !data.spotifyTrackId
     ) {
 
         alert(
             "A Spotify link nem érvényes."
         );
 
-        return;
+        return false;
     }
 
 
     if (
-        youtubeInput &&
-        !youtubeVideoId
+        data.youtubeInput &&
+        !data.youtubeVideoId
     ) {
 
         alert(
             "A YouTube link nem érvényes."
         );
 
-        return;
+        return false;
     }
 
 
     if (
-        !spotifyTrackId &&
-        !youtubeVideoId
+        !data.spotifyTrackId &&
+        !data.youtubeVideoId
     ) {
 
         alert(
             "Adj meg legalább Spotify vagy YouTube linket."
         );
 
-        return;
+        return false;
     }
 
 
     if (
-        minStart < 0 ||
-        maxStart < minStart
+        data.minStart < 0 ||
+        data.maxStart <
+            data.minStart
     ) {
 
         alert(
             "A kezdési időpontok hibásak."
         );
 
-        return;
+        return false;
     }
 
 
     if (
-        clipLength <= 0
+        data.clipLength <= 0
     ) {
 
         alert(
             "A részlet hossza legyen legalább 1 másodperc."
         );
 
+        return false;
+    }
+
+
+    return true;
+}
+
+
+// ======================================================
+// FŐ MENTÉS GOMB
+//
+// Új dalnál hozzáad.
+// Szerkesztésnél módosít.
+// ======================================================
+
+function handleSongSubmit() {
+
+    if (editingSongId) {
+
+        saveEditedSong();
+
+    } else {
+
+        addSong();
+    }
+}
+
+
+// ======================================================
+// DAL HOZZÁADÁSA
+// ======================================================
+
+function addSong() {
+
+    const data =
+        getSongFormData();
+
+
+    if (
+        !validateSongForm(
+            data
+        )
+    ) {
+
         return;
     }
 
 
-    // ==================================================
-    // ÚJ DAL
-    // ==================================================
+    const id =
+        getNextCardId();
+
 
     const newSong = {
 
@@ -493,39 +567,39 @@ function addSong() {
             id,
 
         artist:
-            artist,
+            data.artist,
 
         title:
-            title,
+            data.title,
 
         year:
-            year,
+            data.year,
 
         youtube: {
 
             videoId:
-                youtubeVideoId
+                data.youtubeVideoId
         },
 
         spotify: {
 
             trackId:
-                spotifyTrackId
+                data.spotifyTrackId
         },
 
         playback: {
 
             minStart:
-                minStart,
+                data.minStart,
 
             maxStart:
-                maxStart,
+                data.maxStart,
 
             clipLength:
-                clipLength
+                data.clipLength
         },
 
-        categories: []
+        category: []
     };
 
 
@@ -554,6 +628,409 @@ function addSong() {
     alert(
         "Dal hozzáadva a böngészőben.\n\n" +
         "Ne felejtsd el letölteni az új songs.json fájlt!"
+    );
+}
+
+
+// ======================================================
+// SZERKESZTÉS INDÍTÁSA
+// ======================================================
+
+function editSong(id) {
+
+    const song =
+        songs.find(
+            item =>
+                item.id === id
+        );
+
+
+    if (!song) {
+
+        alert(
+            "Nem található a kiválasztott dal."
+        );
+
+        return;
+    }
+
+
+    editingSongId =
+        song.id;
+
+
+    document.getElementById(
+        "artist"
+    ).value =
+        song.artist || "";
+
+
+    document.getElementById(
+        "title"
+    ).value =
+        song.title || "";
+
+
+    document.getElementById(
+        "year"
+    ).value =
+        song.year || "";
+
+
+    // Spotify ID-ból teljes URL-t írunk az űrlapba.
+
+    document.getElementById(
+        "spotifyUrl"
+    ).value =
+        song.spotify?.trackId
+            ? (
+                "https://open.spotify.com/track/" +
+                song.spotify.trackId
+            )
+            : "";
+
+
+    // YouTube ID-ból teljes URL.
+
+    document.getElementById(
+        "youtubeUrl"
+    ).value =
+        song.youtube?.videoId
+            ? (
+                "https://www.youtube.com/watch?v=" +
+                song.youtube.videoId
+            )
+            : "";
+
+
+    document.getElementById(
+        "minStart"
+    ).value =
+        song.playback?.minStart ??
+        20;
+
+
+    document.getElementById(
+        "maxStart"
+    ).value =
+        song.playback?.maxStart ??
+        180;
+
+
+    document.getElementById(
+        "clipLength"
+    ).value =
+        song.playback?.clipLength ??
+        25;
+
+
+    const addButton =
+        document.getElementById(
+            "addSongButton"
+        );
+
+
+    addButton.textContent =
+        "💾 MÓDOSÍTÁS MENTÉSE";
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelEditButton"
+        );
+
+
+    if (cancelButton) {
+
+        cancelButton.style.display =
+            "block";
+    }
+
+
+    updateNextCardId();
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+
+    console.log(
+        "Szerkesztés:",
+        song.id,
+        song.artist,
+        song.title
+    );
+}
+
+
+// ======================================================
+// MÓDOSÍTÁS MENTÉSE
+// ======================================================
+
+function saveEditedSong() {
+
+    if (!editingSongId) {
+
+        return;
+    }
+
+
+    const index =
+        songs.findIndex(
+            song =>
+                song.id ===
+                editingSongId
+        );
+
+
+    if (index === -1) {
+
+        alert(
+            "A szerkesztett dal már nem található."
+        );
+
+        cancelEdit();
+
+        return;
+    }
+
+
+    const data =
+        getSongFormData();
+
+
+    if (
+        !validateSongForm(
+            data
+        )
+    ) {
+
+        return;
+    }
+
+
+    const oldSong =
+        songs[index];
+
+
+    // --------------------------------------------------
+    // FONTOS:
+    // Az ID változatlan marad.
+    //
+    // A korábbi extra mezőket is megtartjuk,
+    // hogy szerkesztéskor ne vesszen el adat.
+    // --------------------------------------------------
+
+    const updatedSong = {
+
+        ...oldSong,
+
+        id:
+            oldSong.id,
+
+        artist:
+            data.artist,
+
+        title:
+            data.title,
+
+        year:
+            data.year,
+
+        youtube: {
+
+            ...oldSong.youtube,
+
+            videoId:
+                data.youtubeVideoId
+        },
+
+        spotify: {
+
+            ...oldSong.spotify,
+
+            trackId:
+                data.spotifyTrackId
+        },
+
+        playback: {
+
+            ...oldSong.playback,
+
+            minStart:
+                data.minStart,
+
+            maxStart:
+                data.maxStart,
+
+            clipLength:
+                data.clipLength
+        }
+    };
+
+
+    songs[index] =
+        updatedSong;
+
+
+    console.log(
+        "Dal módosítva:",
+        updatedSong
+    );
+
+
+    showCardPreview(
+        updatedSong
+    );
+
+
+    cancelEdit(
+        false
+    );
+
+
+    renderSongList();
+
+    updateNextCardId();
+
+
+    alert(
+        "Módosítás elmentve a böngészőben.\n\n" +
+        "Ne felejtsd el letölteni az új songs.json fájlt!"
+    );
+}
+
+
+// ======================================================
+// MÉGSE
+// ======================================================
+
+function cancelEdit(
+    clearPreview = false
+) {
+
+    editingSongId =
+        null;
+
+
+    clearSongForm();
+
+
+    const addButton =
+        document.getElementById(
+            "addSongButton"
+        );
+
+
+    addButton.textContent =
+        "+ DAL HOZZÁADÁSA";
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelEditButton"
+        );
+
+
+    if (cancelButton) {
+
+        cancelButton.style.display =
+            "none";
+    }
+
+
+    updateNextCardId();
+
+
+    if (clearPreview) {
+
+        const preview =
+            document.getElementById(
+                "cardPreview"
+            );
+
+
+        preview.innerHTML =
+            "Válassz egy dalt a listából.";
+    }
+}
+
+
+// ======================================================
+// MÉGSE GOMB LÉTREHOZÁSA
+//
+// Nem kell admin.html-t módosítani.
+// A JS automatikusan hozzáadja.
+// ======================================================
+
+function setupCancelEditButton() {
+
+    if (
+        document.getElementById(
+            "cancelEditButton"
+        )
+    ) {
+
+        return;
+    }
+
+
+    const addButton =
+        document.getElementById(
+            "addSongButton"
+        );
+
+
+    if (!addButton) {
+
+        return;
+    }
+
+
+    const cancelButton =
+        document.createElement(
+            "button"
+        );
+
+
+    cancelButton.id =
+        "cancelEditButton";
+
+
+    cancelButton.type =
+        "button";
+
+
+    cancelButton.textContent =
+        "✖ MÉGSE";
+
+
+    cancelButton.style.display =
+        "none";
+
+
+    cancelButton.style.background =
+        "#444";
+
+
+    cancelButton.style.color =
+        "#fff";
+
+
+    cancelButton.addEventListener(
+        "click",
+        () => {
+
+            cancelEdit();
+        }
+    );
+
+
+    addButton.insertAdjacentElement(
+        "afterend",
+        cancelButton
     );
 }
 
@@ -636,9 +1113,11 @@ function renderSongList() {
 
             const spotifyStatus =
                 song.spotify?.trackId
+
                     ? `<span class="spotify-ok">
                            ● Spotify
                        </span>`
+
                     : `<span class="spotify-missing">
                            ○ nincs Spotify
                        </span>`;
@@ -651,39 +1130,61 @@ function renderSongList() {
 
 
             item.innerHTML = `
+
                 <strong>
+
                     #${escapeHtml(song.id)}
                     –
                     ${escapeHtml(song.artist)}
                     –
                     ${escapeHtml(song.title)}
+
                 </strong>
 
-                <div class="song-meta">
-                    ${escapeHtml(song.year)}
-                    |
-                    ${spotifyStatus}
-                    |
-                    ${youtubeStatus}
-                </div>
 
                 <div class="song-meta">
+
+                    ${escapeHtml(song.year)}
+
+                    |
+
+                    ${spotifyStatus}
+
+                    |
+
+                    ${youtubeStatus}
+
+                </div>
+
+
+                <div class="song-meta">
+
                     Random:
+
                     ${escapeHtml(
                         song.playback?.minStart ?? 0
                     )}
+
                     –
+
                     ${escapeHtml(
                         song.playback?.maxStart ?? 0
                     )}
+
                     mp
+
                     |
+
                     Részlet:
+
                     ${escapeHtml(
                         song.playback?.clipLength ?? 25
                     )}
+
                     mp
+
                 </div>
+
 
                 <div class="song-actions">
 
@@ -692,6 +1193,14 @@ function renderSongList() {
                         class="preview-button"
                     >
                         KÁRTYA GENERÁLÁSA
+                    </button>
+
+
+                    <button
+                        data-card-id="${escapeHtml(song.id)}"
+                        class="edit-button"
+                    >
+                        ✏ SZERKESZTÉS
                     </button>
 
                 </div>
@@ -704,6 +1213,10 @@ function renderSongList() {
         }
     );
 
+
+    // --------------------------------------------------
+    // KÁRTYA GENERÁLÁS
+    // --------------------------------------------------
 
     document
         .querySelectorAll(
@@ -735,6 +1248,31 @@ function renderSongList() {
                                 song
                             );
                         }
+                    }
+                );
+            }
+        );
+
+
+    // --------------------------------------------------
+    // SZERKESZTÉS
+    // --------------------------------------------------
+
+    document
+        .querySelectorAll(
+            ".edit-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        editSong(
+                            button.dataset
+                                .cardId
+                        );
                     }
                 );
             }
@@ -791,6 +1329,7 @@ function createFrontCard(
 
 
     card.innerHTML = `
+
         <div class="card-front-inner">
 
             <div class="hitster-title">
@@ -839,6 +1378,7 @@ function createBackCard(
 
 
     card.innerHTML = `
+
         <div class="card-back-inner">
 
             <div class="year">
@@ -1237,6 +1777,7 @@ function generatePrintPreview(
 
 
             // ELŐNÉZET FRONT
+
             previewPages.appendChild(
                 buildPreviewSheet(
                     slots,
@@ -1246,6 +1787,7 @@ function generatePrintPreview(
 
 
             // ELŐNÉZET BACK
+
             previewPages.appendChild(
                 buildPreviewSheet(
                     backSlots,
@@ -1255,6 +1797,7 @@ function generatePrintPreview(
 
 
             // PRINT FRONT
+
             printArea.appendChild(
                 buildPrintPage(
                     slots,
@@ -1264,6 +1807,7 @@ function generatePrintPreview(
 
 
             // PRINT BACK
+
             printArea.appendChild(
                 buildPrintPage(
                     backSlots,
@@ -1409,7 +1953,7 @@ document
     )
     .addEventListener(
         "click",
-        addSong
+        handleSongSubmit
     );
 
 
