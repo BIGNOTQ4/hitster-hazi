@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hitster Házi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="game">
+        <h1>🎵 HITSTER HÁZI</h1>
+
+        <p id="cardNumber">Kártya betöltése...</p>
+
+        <button id="playButton" disabled>
+            ▶ ZENE INDÍTÁSA
+        </button>
+
+        <div id="timer">25</div>
+
+        <button id="stopButton" disabled>
+            ■ STOP
+        </button>
+
+        <p id="status">Betöltés...</p>
+
+        <!-- A YouTube videót elrejtjük a játékos elől -->
+        <div id="player"></div>
+    </main>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

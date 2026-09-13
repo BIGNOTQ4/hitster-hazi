@@ -1,0 +1,52 @@
+[
+  {
+    "id": "001",
+    "artist": "Avicii",
+    "title": "Wake Me Up",
+    "year": 2013,
+    "youtubeId": "IcrbM1l_BoI",
+    "duration": 247,
+    "minStart": 20,
+    "maxStart": 210
+  },
+  {
+    "id": "002",
+    "artist": "Lady Gaga",
+    "title": "Poker Face",
+    "year": 2008,
+    "youtubeId": "bESGLojNYSo",
+    "duration": 237,
+    "minStart": 20,
+    "maxStart": 200
+  },
+  {
+    "id": "003",
+    "artist": "Eminem",
+    "title": "Without Me",
+    "year": 2002,
+    "youtubeId": "YVkUvmDQ3HY",
+    "duration": 290,
+    "minStart": 20,
+    "maxStart": 250
+  },
+  {
+    "id": "004",
+    "artist": "The Weeknd",
+    "title": "Blinding Lights",
+    "year": 2019,
+    "youtubeId": "4NRXx6U8ABQ",
+    "duration": 262,
+    "minStart": 20,
+    "maxStart": 225
+  },
+  {
+  "id": "005",
+  "artist": "TEST",
+  "title": "YouTube API Test",
+  "year": 2000,
+  "youtubeId": "M7lc1UVf-VE",
+  "duration": 180,
+  "minStart": 5,
+  "maxStart": 60
+  }
+]
