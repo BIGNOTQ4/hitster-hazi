@@ -1,58 +1,431 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#111111">
 
-    <title>Hitster Házi</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="style.css">
+    <meta
+        name="theme-color"
+        content="#111111"
+    >
+
+    <title>
+        Hitster Házi
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
+
 
 <body>
 
-    <main class="game">
+<main class="game">
 
-        <div class="logo">♫</div>
+    <!-- ==========================================
+         LOGÓ
+         ========================================== -->
 
-        <h1>HITSTER</h1>
-        <div class="subtitle">HÁZI</div>
+    <div class="logo">
+        ♫
+    </div>
 
-        <div class="card">
-            <p class="card-label">ZENEI KÁRTYA</p>
+    <h1>
+        HITSTER
+    </h1>
 
-            <p id="cardNumber">Betöltés...</p>
+    <div class="subtitle">
+        HÁZI
+    </div>
 
-            <div class="timer-wrapper">
-                <span id="timer">25</span>
-                <small>másodperc</small>
-            </div>
 
-            <button id="playButton" class="play-button" disabled>
-                ▶ ZENE INDÍTÁSA
-            </button>
+    <!-- ==========================================
+         SPOTIFY ÁLLAPOT
+         ========================================== -->
 
-            <button id="stopButton" class="stop-button" disabled>
-                ■ STOP
-            </button>
+    <div
+        id="spotifyPanel"
+        class="spotify-panel"
+    >
 
-            <p id="status">Betöltés...</p>
-        </div>
+        <button
+            id="spotifyLoginButton"
+            type="button"
+        >
+            🟢 BEJELENTKEZÉS SPOTIFYJAL
+        </button>
 
-        <p class="hint">
-            Hallgasd meg a részletet, majd helyezd el a kártyát az idővonalon!
+
+        <button
+            id="spotifyLogoutButton"
+            type="button"
+            style="display:none;"
+        >
+            KIJELENTKEZÉS SPOTIFYBÓL
+        </button>
+
+
+        <p id="spotifyStatus">
+            Spotify ellenőrzése...
         </p>
 
-        <!-- YouTube Player: működik, de a játékos nem látja -->
-        <div class="hidden-player">
-            <div id="player"></div>
+    </div>
+
+
+    <!-- ==========================================
+         JÁTÉKKÁRTYA
+         ========================================== -->
+
+    <div class="card">
+
+        <p class="card-label">
+            ZENEI KÁRTYA
+        </p>
+
+
+        <p id="cardNumber">
+            Betöltés...
+        </p>
+
+
+        <div class="timer-wrapper">
+
+            <span id="timer">
+                25
+            </span>
+
+            <small>
+                másodperc
+            </small>
+
         </div>
 
-    </main>
 
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="app.js"></script>
+        <button
+            id="playButton"
+            class="play-button"
+            disabled
+        >
+            ▶ ZENE INDÍTÁSA
+        </button>
+
+
+        <button
+            id="stopButton"
+            class="stop-button"
+            disabled
+        >
+            ■ STOP
+        </button>
+
+
+        <p id="status">
+            Betöltés...
+        </p>
+
+    </div>
+
+
+    <!-- ==========================================
+         SEGÉDSZÖVEG
+         ========================================== -->
+
+    <p class="hint">
+        Hallgasd meg a részletet, majd helyezd el
+        a kártyát az idővonalon!
+    </p>
+
+
+    <!-- ==========================================
+         YOUTUBE FALLBACK PLAYER
+
+         Egyelőre megtartjuk teszt/fallback célra.
+         A játékos nem látja.
+         ========================================== -->
+
+    <div class="hidden-player">
+
+        <div id="player"></div>
+
+    </div>
+
+</main>
+
+
+<!-- ==========================================
+     SPOTIFY AUTH
+     ========================================== -->
+
+<script src="spotify-auth.js"></script>
+
+
+<!-- ==========================================
+     SPOTIFY PLAYER SAJÁT KÓD
+
+     FONTOS:
+     ezt a hivatalos SDK ELŐTT töltjük be,
+     mert ebben definiáljuk az
+     onSpotifyWebPlaybackSDKReady callbacket.
+     ========================================== -->
+
+<script src="spotify-player.js"></script>
+
+
+<!-- ==========================================
+     HIVATALOS SPOTIFY WEB PLAYBACK SDK
+     ========================================== -->
+
+<script
+    src="https://sdk.scdn.co/spotify-player.js">
+</script>
+
+
+<!-- ==========================================
+     YOUTUBE FALLBACK SDK
+     ========================================== -->
+
+<script
+    src="https://www.youtube.com/iframe_api">
+</script>
+
+
+<!-- ==========================================
+     HITSTER FŐ LOGIKA
+     ========================================== -->
+
+<script src="app.js"></script>
+
+
+<!-- ==========================================
+     SPOTIFY LOGIN UI
+     ========================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+
+        const loginButton =
+            document.getElementById(
+                "spotifyLoginButton"
+            );
+
+
+        const logoutButton =
+            document.getElementById(
+                "spotifyLogoutButton"
+            );
+
+
+        const spotifyStatus =
+            document.getElementById(
+                "spotifyStatus"
+            );
+
+
+        // ======================================
+        // SPOTIFY CALLBACK FELDOLGOZÁSA
+        // ======================================
+
+        try {
+
+            const callbackHandled =
+                await window
+                    .HitsterSpotifyAuth
+                    .handleCallback();
+
+
+            if (callbackHandled) {
+
+                console.log(
+                    "[HITSTER] Spotify callback feldolgozva."
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "[HITSTER] Spotify callback hiba:",
+                error
+            );
+        }
+
+
+        // ======================================
+        // LOGIN ÁLLAPOT
+        // ======================================
+
+        async function updateSpotifyUI() {
+
+            const loggedIn =
+                await window
+                    .HitsterSpotifyAuth
+                    .isLoggedIn();
+
+
+            if (!loggedIn) {
+
+                loginButton.style.display =
+                    "block";
+
+
+                logoutButton.style.display =
+                    "none";
+
+
+                spotifyStatus.textContent =
+                    "Spotify nincs bejelentkezve";
+
+
+                return;
+            }
+
+
+            loginButton.style.display =
+                "none";
+
+
+            logoutButton.style.display =
+                "block";
+
+
+            spotifyStatus.textContent =
+                "Spotify bejelentkezve – player indítása...";
+
+
+            // ==================================
+            // PROFIL TESZT
+            // ==================================
+
+            try {
+
+                const profile =
+                    await window
+                        .HitsterSpotifyAuth
+                        .getProfile();
+
+
+                if (profile) {
+
+                    console.log(
+                        "[SPOTIFY] Profil:",
+                        profile
+                    );
+
+
+                    if (
+                        profile.display_name
+                    ) {
+
+                        spotifyStatus.textContent =
+                            "Spotify: " +
+                            profile.display_name;
+                    }
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    "[SPOTIFY] Profil lekérés hiba:",
+                    error
+                );
+            }
+        }
+
+
+        // ======================================
+        // LOGIN GOMB
+        // ======================================
+
+        loginButton.addEventListener(
+            "click",
+            async () => {
+
+                spotifyStatus.textContent =
+                    "Átirányítás Spotifyhoz...";
+
+
+                await window
+                    .HitsterSpotifyAuth
+                    .login();
+            }
+        );
+
+
+        // ======================================
+        // LOGOUT GOMB
+        // ======================================
+
+        logoutButton.addEventListener(
+            "click",
+            () => {
+
+                window
+                    .HitsterSpotifyAuth
+                    .logout();
+
+
+                window.location.reload();
+            }
+        );
+
+
+        // ======================================
+        // SPOTIFY PLAYER READY
+        // ======================================
+
+        document.addEventListener(
+            "hitsterSpotifyReady",
+            event => {
+
+                console.log(
+                    "[HITSTER] Spotify player ready:",
+                    event.detail.deviceId
+                );
+
+
+                spotifyStatus.textContent =
+                    "✅ Spotify Player készen áll";
+            }
+        );
+
+
+        // ======================================
+        // SPOTIFY PLAYER HIBA
+        // ======================================
+
+        document.addEventListener(
+            "hitsterSpotifyError",
+            event => {
+
+                console.error(
+                    "[HITSTER] Spotify player hiba:",
+                    event.detail
+                );
+
+
+                spotifyStatus.textContent =
+                    "❌ Spotify hiba: " +
+                    event.detail.message;
+            }
+        );
+
+
+        await updateSpotifyUI();
+    }
+);
+
+</script>
+
 
 </body>
+
 </html>
