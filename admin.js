@@ -1,6 +1,7 @@
 let songs = [];
 
-let currentPrintSongs = [];
+const PUBLIC_BASE_URL =
+    "https://bignotq4.github.io/hitster-hazi/";
 
 
 // ======================================================
@@ -18,7 +19,8 @@ async function loadSongs() {
         if (!response.ok) {
 
             throw new Error(
-                "songs.json betöltési hiba"
+                "songs.json hiba: " +
+                response.status
             );
         }
 
@@ -27,16 +29,22 @@ async function loadSongs() {
             await response.json();
 
 
-        updateInterface();
+        renderSongList();
+
+        updateNextCardId();
 
     } catch (error) {
 
-        console.error(error);
-
-
-        showMessage(
-            "❌ Nem sikerült betölteni a songs.json fájlt."
+        console.error(
+            "songs.json betöltési hiba:",
+            error
         );
+
+
+        document.getElementById(
+            "songList"
+        ).innerHTML =
+            "<p>❌ Nem sikerült betölteni a songs.json fájlt.</p>";
     }
 }
 
@@ -45,23 +53,23 @@ async function loadSongs() {
 // KÖVETKEZŐ ID
 // ======================================================
 
-function getNextId() {
+function getNextCardId() {
 
-    let maxId = 0;
+    if (
+        !songs.length
+    ) {
+
+        return "001";
+    }
 
 
-    songs.forEach(song => {
-
-        const id =
-            parseInt(song.id, 10);
-
-
-        if (id > maxId) {
-
-            maxId =
-                id;
-        }
-    });
+    const maxId =
+        Math.max(
+            ...songs.map(
+                song =>
+                    Number(song.id) || 0
+            )
+        );
 
 
     return String(
@@ -73,70 +81,225 @@ function getNextId() {
 }
 
 
+function updateNextCardId() {
+
+    document.getElementById(
+        "nextCardId"
+    ).textContent =
+        getNextCardId();
+}
+
+
 // ======================================================
-// YOUTUBE ID
+// SPOTIFY TRACK ID KINYERÉSE
+//
+// Elfogadja:
+// https://open.spotify.com/track/ID
+// spotify:track:ID
+// közvetlen ID
 // ======================================================
 
-function extractYouTubeId(url) {
+function extractSpotifyTrackId(value) {
 
+    if (!value) {
+
+        return "";
+    }
+
+
+    const input =
+        value.trim();
+
+
+    if (!input) {
+
+        return "";
+    }
+
+
+    // spotify:track:ID
+    if (
+        input.startsWith(
+            "spotify:track:"
+        )
+    ) {
+
+        return input
+            .replace(
+                "spotify:track:",
+                ""
+            )
+            .trim();
+    }
+
+
+    // Spotify URL
+    if (
+        input.includes(
+            "open.spotify.com/track/"
+        )
+    ) {
+
+        try {
+
+            const url =
+                new URL(input);
+
+
+            const parts =
+                url.pathname
+                    .split("/")
+                    .filter(Boolean);
+
+
+            const trackIndex =
+                parts.indexOf(
+                    "track"
+                );
+
+
+            if (
+                trackIndex !== -1 &&
+                parts[
+                    trackIndex + 1
+                ]
+            ) {
+
+                return parts[
+                    trackIndex + 1
+                ];
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Hibás Spotify URL:",
+                error
+            );
+
+            return "";
+        }
+    }
+
+
+    // Ha csak maga az ID
+    if (
+        /^[A-Za-z0-9]{15,30}$/.test(
+            input
+        )
+    ) {
+
+        return input;
+    }
+
+
+    return "";
+}
+
+
+// ======================================================
+// YOUTUBE VIDEO ID
+// ======================================================
+
+function extractYouTubeId(value) {
+
+    if (!value) {
+
+        return "";
+    }
+
+
+    const input =
+        value.trim();
+
+
+    if (!input) {
+
+        return "";
+    }
+
+
+    // youtube.com/watch?v=
     try {
 
-        const parsed =
-            new URL(url);
+        const url =
+            new URL(input);
 
 
         if (
-            parsed.hostname.includes(
-                "youtu.be"
+            url.hostname.includes(
+                "youtube.com"
             )
         ) {
 
-            return parsed.pathname
-                .substring(1)
-                .split("/")[0];
+            if (
+                url.pathname ===
+                "/watch"
+            ) {
+
+                return (
+                    url.searchParams.get(
+                        "v"
+                    ) || ""
+                );
+            }
+
+
+            // /shorts/ID
+            if (
+                url.pathname.startsWith(
+                    "/shorts/"
+                )
+            ) {
+
+                return url.pathname
+                    .split("/")[2] || "";
+            }
+
+
+            // /embed/ID
+            if (
+                url.pathname.startsWith(
+                    "/embed/"
+                )
+            ) {
+
+                return url.pathname
+                    .split("/")[2] || "";
+            }
         }
 
 
         if (
-            parsed.searchParams.get("v")
-        ) {
-
-            return parsed.searchParams.get(
-                "v"
-            );
-        }
-
-
-        if (
-            parsed.pathname.includes(
-                "/shorts/"
+            url.hostname ===
+                "youtu.be" ||
+            url.hostname.endsWith(
+                ".youtu.be"
             )
         ) {
 
-            return parsed.pathname
-                .split("/shorts/")[1]
+            return url.pathname
+                .replace("/", "")
                 .split("/")[0];
         }
-
-
-        if (
-            parsed.pathname.includes(
-                "/embed/"
-            )
-        ) {
-
-            return parsed.pathname
-                .split("/embed/")[1]
-                .split("/")[0];
-        }
-
-
-        return null;
 
     } catch {
-
-        return null;
+        // Nem URL.
     }
+
+
+    // Ha közvetlen video ID
+    if (
+        /^[A-Za-z0-9_-]{11}$/.test(
+            input
+        )
+    ) {
+
+        return input;
+    }
+
+
+    return "";
 }
 
 
@@ -146,16 +309,24 @@ function extractYouTubeId(url) {
 
 function addSong() {
 
+    const id =
+        getNextCardId();
+
+
     const artist =
         document
-            .getElementById("artist")
+            .getElementById(
+                "artist"
+            )
             .value
             .trim();
 
 
     const title =
         document
-            .getElementById("title")
+            .getElementById(
+                "title"
+            )
             .value
             .trim();
 
@@ -163,22 +334,49 @@ function addSong() {
     const year =
         Number(
             document
-                .getElementById("year")
+                .getElementById(
+                    "year"
+                )
                 .value
         );
 
 
-    const youtubeUrl =
+    const spotifyInput =
         document
-            .getElementById("youtubeUrl")
+            .getElementById(
+                "spotifyUrl"
+            )
             .value
             .trim();
+
+
+    const spotifyTrackId =
+        extractSpotifyTrackId(
+            spotifyInput
+        );
+
+
+    const youtubeInput =
+        document
+            .getElementById(
+                "youtubeUrl"
+            )
+            .value
+            .trim();
+
+
+    const youtubeVideoId =
+        extractYouTubeId(
+            youtubeInput
+        );
 
 
     const minStart =
         Number(
             document
-                .getElementById("minStart")
+                .getElementById(
+                    "minStart"
+                )
                 .value
         );
 
@@ -186,7 +384,9 @@ function addSong() {
     const maxStart =
         Number(
             document
-                .getElementById("maxStart")
+                .getElementById(
+                    "maxStart"
+                )
                 .value
         );
 
@@ -194,26 +394,25 @@ function addSong() {
     const clipLength =
         Number(
             document
-                .getElementById("clipLength")
+                .getElementById(
+                    "clipLength"
+                )
                 .value
         );
 
 
-    const youtubeId =
-        extractYouTubeId(
-            youtubeUrl
-        );
-
+    // ==================================================
+    // VALIDÁCIÓ
+    // ==================================================
 
     if (
         !artist ||
         !title ||
-        !year ||
-        !youtubeId
+        !year
     ) {
 
-        showMessage(
-            "❌ Töltsd ki az előadót, címet, évet és egy érvényes YouTube URL-t."
+        alert(
+            "Az előadó, a dal címe és az év kötelező."
         );
 
         return;
@@ -221,13 +420,12 @@ function addSong() {
 
 
     if (
-        !Number.isFinite(minStart) ||
-        !Number.isFinite(maxStart) ||
-        maxStart <= minStart
+        spotifyInput &&
+        !spotifyTrackId
     ) {
 
-        showMessage(
-            "❌ A maximum kezdőpont legyen nagyobb a minimumnál."
+        alert(
+            "A Spotify link nem érvényes."
         );
 
         return;
@@ -235,52 +433,99 @@ function addSong() {
 
 
     if (
-        !Number.isFinite(clipLength) ||
+        youtubeInput &&
+        !youtubeVideoId
+    ) {
+
+        alert(
+            "A YouTube link nem érvényes."
+        );
+
+        return;
+    }
+
+
+    if (
+        !spotifyTrackId &&
+        !youtubeVideoId
+    ) {
+
+        alert(
+            "Adj meg legalább Spotify vagy YouTube linket."
+        );
+
+        return;
+    }
+
+
+    if (
+        minStart < 0 ||
+        maxStart < minStart
+    ) {
+
+        alert(
+            "A kezdési időpontok hibásak."
+        );
+
+        return;
+    }
+
+
+    if (
         clipLength <= 0
     ) {
 
-        showMessage(
-            "❌ A részlet hossza legyen nagyobb 0 másodpercnél."
+        alert(
+            "A részlet hossza legyen legalább 1 másodperc."
         );
 
         return;
     }
 
 
+    // ==================================================
+    // ÚJ DAL
+    // ==================================================
+
     const newSong = {
 
-        id: getNextId(),
+        id:
+            id,
 
-        artist: artist,
+        artist:
+            artist,
 
-        title: title,
+        title:
+            title,
 
-        year: year,
-
+        year:
+            year,
 
         youtube: {
 
-            videoId: youtubeId
+            videoId:
+                youtubeVideoId
         },
-
 
         spotify: {
 
-            trackId: ""
+            trackId:
+                spotifyTrackId
         },
-
 
         playback: {
 
-            minStart: minStart,
+            minStart:
+                minStart,
 
-            maxStart: maxStart,
+            maxStart:
+                maxStart,
 
-            clipLength: clipLength
+            clipLength:
+                clipLength
         },
 
-
-        category: []
+        categories: []
     };
 
 
@@ -289,137 +534,211 @@ function addSong() {
     );
 
 
-    clearForm();
+    console.log(
+        "Új dal:",
+        newSong
+    );
 
-    updateInterface();
+
+    clearSongForm();
+
+    renderSongList();
+
+    updateNextCardId();
+
+    showCardPreview(
+        newSong
+    );
 
 
-    showMessage(
-
-        "✅ Dal hozzáadva: #" +
-        newSong.id +
-        " — " +
-        newSong.artist +
-        " – " +
-        newSong.title
+    alert(
+        "Dal hozzáadva a böngészőben.\n\n" +
+        "Ne felejtsd el letölteni az új songs.json fájlt!"
     );
 }
 
 
 // ======================================================
-// FELÜLET
+// FORM TÖRLÉSE
 // ======================================================
 
-function updateInterface() {
+function clearSongForm() {
 
-    document
-        .getElementById("nextId")
-        .textContent =
-        "#" +
-        getNextId();
+    document.getElementById(
+        "artist"
+    ).value = "";
 
 
-    const list =
+    document.getElementById(
+        "title"
+    ).value = "";
+
+
+    document.getElementById(
+        "year"
+    ).value = "";
+
+
+    document.getElementById(
+        "spotifyUrl"
+    ).value = "";
+
+
+    document.getElementById(
+        "youtubeUrl"
+    ).value = "";
+
+
+    document.getElementById(
+        "minStart"
+    ).value = "20";
+
+
+    document.getElementById(
+        "maxStart"
+    ).value = "180";
+
+
+    document.getElementById(
+        "clipLength"
+    ).value = "25";
+}
+
+
+// ======================================================
+// DAL LISTA
+// ======================================================
+
+function renderSongList() {
+
+    const container =
         document.getElementById(
             "songList"
         );
 
 
-    list.innerHTML =
+    container.innerHTML =
         "";
 
 
-    songs.forEach(song => {
+    songs.forEach(
+        song => {
 
-        const row =
-            document.createElement(
-                "div"
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "song-item";
+
+
+            const spotifyStatus =
+                song.spotify?.trackId
+                    ? `<span class="spotify-ok">
+                           ● Spotify
+                       </span>`
+                    : `<span class="spotify-missing">
+                           ○ nincs Spotify
+                       </span>`;
+
+
+            const youtubeStatus =
+                song.youtube?.videoId
+                    ? "YouTube ✓"
+                    : "YouTube –";
+
+
+            item.innerHTML = `
+                <strong>
+                    #${escapeHtml(song.id)}
+                    –
+                    ${escapeHtml(song.artist)}
+                    –
+                    ${escapeHtml(song.title)}
+                </strong>
+
+                <div class="song-meta">
+                    ${escapeHtml(song.year)}
+                    |
+                    ${spotifyStatus}
+                    |
+                    ${youtubeStatus}
+                </div>
+
+                <div class="song-meta">
+                    Random:
+                    ${escapeHtml(
+                        song.playback?.minStart ?? 0
+                    )}
+                    –
+                    ${escapeHtml(
+                        song.playback?.maxStart ?? 0
+                    )}
+                    mp
+                    |
+                    Részlet:
+                    ${escapeHtml(
+                        song.playback?.clipLength ?? 25
+                    )}
+                    mp
+                </div>
+
+                <div class="song-actions">
+
+                    <button
+                        data-card-id="${escapeHtml(song.id)}"
+                        class="preview-button"
+                    >
+                        KÁRTYA GENERÁLÁSA
+                    </button>
+
+                </div>
+            `;
+
+
+            container.appendChild(
+                item
             );
+        }
+    );
 
 
-        row.className =
-            "song-row";
+    document
+        .querySelectorAll(
+            ".preview-button"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const id =
+                            button.dataset
+                                .cardId;
 
 
-        const info =
-            document.createElement(
-                "div"
-            );
+                        const song =
+                            songs.find(
+                                item =>
+                                    item.id ===
+                                    id
+                            );
 
 
-        info.className =
-            "song-info";
+                        if (song) {
 
-
-        info.textContent =
-
-            "#" +
-            song.id +
-            " — " +
-            song.artist +
-            " – " +
-            song.title +
-            " (" +
-            song.year +
-            ")";
-
-
-        const cardButton =
-            document.createElement(
-                "button"
-            );
-
-
-        cardButton.className =
-            "card-button";
-
-
-        cardButton.textContent =
-            "KÁRTYA GENERÁLÁSA";
-
-
-        cardButton.addEventListener(
-
-            "click",
-
-            () => {
-
-                generateCard(
-                    song
+                            showCardPreview(
+                                song
+                            );
+                        }
+                    }
                 );
             }
         );
-
-
-        row.appendChild(
-            info
-        );
-
-
-        row.appendChild(
-            cardButton
-        );
-
-
-        list.appendChild(
-            row
-        );
-    });
-}
-
-
-// ======================================================
-// JÁTÉK URL
-// ======================================================
-
-function getGameUrl(song) {
-
-    return (
-        "https://bignotq4.github.io/hitster-hazi/?card=" +
-        encodeURIComponent(
-            song.id
-        )
-    );
 }
 
 
@@ -427,61 +746,130 @@ function getGameUrl(song) {
 // QR URL
 // ======================================================
 
+function getCardUrl(song) {
+
+    return (
+        PUBLIC_BASE_URL +
+        "?card=" +
+        encodeURIComponent(
+            song.id
+        )
+    );
+}
+
+
 function getQrUrl(song) {
 
     return (
-        "https://api.qrserver.com/v1/create-qr-code/?" +
-        "size=500x500&data=" +
+        "https://api.qrserver.com/v1/create-qr-code/" +
+        "?size=500x500" +
+        "&data=" +
         encodeURIComponent(
-            getGameUrl(song)
+            getCardUrl(song)
         )
     );
 }
 
 
 // ======================================================
-// EGYEDI KÁRTYA
+// FRONT
 // ======================================================
 
-function generateCard(song) {
+function createFrontCard(
+    song,
+    className = "preview-card"
+) {
 
-    document
-        .getElementById("qrImage")
-        .src =
-        getQrUrl(song);
-
-
-    document
-        .getElementById("frontCardId")
-        .textContent =
-        "#" +
-        song.id;
+    const card =
+        document.createElement(
+            "div"
+        );
 
 
-    document
-        .getElementById("backYear")
-        .textContent =
-        song.year;
+    card.className =
+        className;
 
 
-    document
-        .getElementById("backArtist")
-        .textContent =
-        song.artist;
+    card.innerHTML = `
+        <div class="card-front-inner">
+
+            <div class="hitster-title">
+                ♫ HITSTER
+            </div>
+
+            <div class="hitster-home">
+                HÁZI
+            </div>
+
+            <img
+                class="qr-image"
+                src="${getQrUrl(song)}"
+                alt="QR"
+            >
+
+            <div class="card-id">
+                #${escapeHtml(song.id)}
+            </div>
+
+        </div>
+    `;
 
 
-    document
-        .getElementById("backTitle")
-        .textContent =
-        song.title;
+    return card;
+}
 
 
-    document
-        .getElementById("backCardId")
-        .textContent =
-        "#" +
-        song.id;
+// ======================================================
+// BACK
+// ======================================================
 
+function createBackCard(
+    song,
+    className = "preview-card"
+) {
+
+    const card =
+        document.createElement(
+            "div"
+        );
+
+
+    card.className =
+        className;
+
+
+    card.innerHTML = `
+        <div class="card-back-inner">
+
+            <div class="year">
+                ${escapeHtml(song.year)}
+            </div>
+
+            <div class="artist">
+                ${escapeHtml(song.artist)}
+            </div>
+
+            <div class="title">
+                ${escapeHtml(song.title)}
+            </div>
+
+            <div class="card-id">
+                #${escapeHtml(song.id)}
+            </div>
+
+        </div>
+    `;
+
+
+    return card;
+}
+
+
+// ======================================================
+// KÁRTYA ELŐNÉZET
+// ======================================================
+
+function showCardPreview(song) {
 
     const preview =
         document.getElementById(
@@ -489,673 +877,22 @@ function generateCard(song) {
         );
 
 
-    preview.style.display =
-        "block";
-
-
-    preview.scrollIntoView({
-
-        behavior: "smooth"
-    });
-
-
-    showMessage(
-
-        "✅ #" +
-        song.id +
-        " kártya elkészült."
-    );
-}
-
-
-// ======================================================
-// HTML ESCAPE
-// ======================================================
-
-function escapeHtml(value) {
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-
-    div.textContent =
-        String(value);
-
-
-    return div.innerHTML;
-}
-
-
-// ======================================================
-// KÁRTYA ELEJE HTML
-// ======================================================
-
-function createFrontCard(song) {
-
-    if (!song) {
-
-        return `
-            <div class="print-card empty-card">
-            </div>
-        `;
-    }
-
-
-    return `
-        <div class="print-card">
-
-            <div class="print-logo">
-                ♫ HITSTER
-            </div>
-
-            <div class="print-home">
-                HÁZI
-            </div>
-
-            <img
-                class="print-qr"
-                src="${getQrUrl(song)}"
-                alt="QR ${escapeHtml(song.id)}"
-            >
-
-            <div class="print-id">
-                #${escapeHtml(song.id)}
-            </div>
-
-        </div>
-    `;
-}
-
-
-// ======================================================
-// KÁRTYA HÁTULJA HTML
-// ======================================================
-
-function createBackCard(song) {
-
-    if (!song) {
-
-        return `
-            <div class="print-card empty-card">
-            </div>
-        `;
-    }
-
-
-    return `
-        <div class="print-card">
-
-            <div class="print-year">
-                ${escapeHtml(song.year)}
-            </div>
-
-            <div class="print-artist">
-                ${escapeHtml(song.artist)}
-            </div>
-
-            <div class="print-title">
-                ${escapeHtml(song.title)}
-            </div>
-
-            <div class="print-id">
-                #${escapeHtml(song.id)}
-            </div>
-
-        </div>
-    `;
-}
-
-
-// ======================================================
-// 9 HELYES LAP
-// ======================================================
-
-function createSlots(chunk) {
-
-    const slots =
-        new Array(9)
-            .fill(null);
-
-
-    chunk.forEach(
-        (song, index) => {
-
-            slots[index] =
-                song;
-        }
-    );
-
-
-    return slots;
-}
-
-
-// ======================================================
-// HÁTOLDAL TÜKRÖZÉSE
-// ======================================================
-
-function mirrorBackSlots(
-    slots,
-    flipMode
-) {
-
-    // ----------------------------------------------
-    // HOSSZÚ ÉL
-    //
-    // Soron belül tükrözzük:
-    //
-    // 001 002 003
-    //
-    // hátul:
-    //
-    // 003 002 001
-    // ----------------------------------------------
-
-    if (
-        flipMode === "long"
-    ) {
-
-        return [
-
-            slots[2],
-            slots[1],
-            slots[0],
-
-            slots[5],
-            slots[4],
-            slots[3],
-
-            slots[8],
-            slots[7],
-            slots[6]
-        ];
-    }
-
-
-    // ----------------------------------------------
-    // RÖVID ÉL
-    //
-    // A sorok sorrendje fordul meg.
-    // ----------------------------------------------
-
-    return [
-
-        slots[6],
-        slots[7],
-        slots[8],
-
-        slots[3],
-        slots[4],
-        slots[5],
-
-        slots[0],
-        slots[1],
-        slots[2]
-    ];
-}
-
-
-// ======================================================
-// DALOK 9-ES CSOPORTOKBA
-// ======================================================
-
-function chunkSongs(
-    sourceSongs,
-    size = 9
-) {
-
-    const chunks =
-        [];
-
-
-    for (
-        let i = 0;
-        i < sourceSongs.length;
-        i += size
-    ) {
-
-        chunks.push(
-
-            sourceSongs.slice(
-                i,
-                i + size
-            )
-        );
-    }
-
-
-    return chunks;
-}
-
-
-// ======================================================
-// ELŐNÉZET GENERÁLÁSA
-// ======================================================
-
-function generatePrintPreview(
-    sourceSongs
-) {
-
-    currentPrintSongs =
-        [...sourceSongs];
-
-
-    const flipMode =
-        document
-            .getElementById("flipMode")
-            .value;
-
-
-    const preview =
-        document.getElementById(
-            "previewPages"
-        );
-
-
     preview.innerHTML =
         "";
 
 
-    const chunks =
-        chunkSongs(
-            sourceSongs
-        );
-
-
-    chunks.forEach(
-        (chunk, pageIndex) => {
-
-            const slots =
-                createSlots(
-                    chunk
-                );
-
-
-            const backSlots =
-                mirrorBackSlots(
-                    slots,
-                    flipMode
-                );
-
-
-            // ==========================================
-            // ELEJE
-            // ==========================================
-
-            const frontWrapper =
-                document.createElement(
-                    "div"
-                );
-
-
-            frontWrapper.className =
-                "preview-page";
-
-
-            frontWrapper.innerHTML = `
-
-                <h3>
-                    ${
-                        pageIndex * 2 + 1
-                    }. oldal – ELŐLAPOK
-                </h3>
-
-                <div class="card-grid">
-
-                    ${
-                        slots
-                            .map(
-                                createFrontCard
-                            )
-                            .join("")
-                    }
-
-                </div>
-            `;
-
-
-            preview.appendChild(
-                frontWrapper
-            );
-
-
-            // ==========================================
-            // HÁTULJA
-            // ==========================================
-
-            const backWrapper =
-                document.createElement(
-                    "div"
-                );
-
-
-            backWrapper.className =
-                "preview-page";
-
-
-            backWrapper.innerHTML = `
-
-                <h3>
-                    ${
-                        pageIndex * 2 + 2
-                    }. oldal – HÁTLAPOK
-                </h3>
-
-                <div class="card-grid">
-
-                    ${
-                        backSlots
-                            .map(
-                                createBackCard
-                            )
-                            .join("")
-                    }
-
-                </div>
-            `;
-
-
-            preview.appendChild(
-                backWrapper
-            );
-        }
+    preview.appendChild(
+        createFrontCard(
+            song
+        )
     );
 
 
-    const printPreview =
-        document.getElementById(
-            "printPreview"
-        );
-
-
-    printPreview.style.display =
-        "block";
-
-
-    printPreview.scrollIntoView({
-
-        behavior: "smooth"
-    });
-
-
-    buildRealPrintArea(
-        sourceSongs
+    preview.appendChild(
+        createBackCard(
+            song
+        )
     );
-
-
-    showMessage(
-
-        "✅ Nyomtatási előnézet elkészült: " +
-        sourceSongs.length +
-        " kártya."
-    );
-}
-
-
-// ======================================================
-// VALÓDI NYOMTATÁSI LAPOK
-// ======================================================
-
-function buildRealPrintArea(
-    sourceSongs
-) {
-
-    const flipMode =
-        document
-            .getElementById("flipMode")
-            .value;
-
-
-    const area =
-        document.getElementById(
-            "printArea"
-        );
-
-
-    area.innerHTML =
-        "";
-
-
-    const chunks =
-        chunkSongs(
-            sourceSongs
-        );
-
-
-    chunks.forEach(chunk => {
-
-        const slots =
-            createSlots(
-                chunk
-            );
-
-
-        const backSlots =
-            mirrorBackSlots(
-                slots,
-                flipMode
-            );
-
-
-        // ==========================================
-        // ELŐLAP A4
-        // ==========================================
-
-        const frontPage =
-            document.createElement(
-                "div"
-            );
-
-
-        frontPage.className =
-            "print-page";
-
-
-        frontPage.innerHTML =
-
-            slots
-                .map(
-                    createFrontCard
-                )
-                .join("");
-
-
-        area.appendChild(
-            frontPage
-        );
-
-
-        // ==========================================
-        // HÁTLAP A4
-        // ==========================================
-
-        const backPage =
-            document.createElement(
-                "div"
-            );
-
-
-        backPage.className =
-            "print-page";
-
-
-        backPage.innerHTML =
-
-            backSlots
-                .map(
-                    createBackCard
-                )
-                .join("");
-
-
-        area.appendChild(
-            backPage
-        );
-    });
-}
-
-
-// ======================================================
-// 6 KÁRTYÁS TESZT
-// ======================================================
-
-function generateTestPrint() {
-
-    const testSongs =
-        songs.slice(
-            0,
-            6
-        );
-
-
-    generatePrintPreview(
-        testSongs
-    );
-}
-
-
-// ======================================================
-// ÖSSZES KÁRTYA
-// ======================================================
-
-function generateAllPrint() {
-
-    generatePrintPreview(
-        songs
-    );
-}
-
-
-// ======================================================
-// VÁRAKOZÁS A QR-KÉPEKRE
-// ======================================================
-
-async function waitForImages() {
-
-    const images =
-        Array.from(
-            document.querySelectorAll(
-                "#printArea img"
-            )
-        );
-
-
-    await Promise.all(
-
-        images.map(img => {
-
-            if (
-                img.complete
-            ) {
-
-                return Promise.resolve();
-            }
-
-
-            return new Promise(
-                resolve => {
-
-                    img.onload =
-                        resolve;
-
-                    img.onerror =
-                        resolve;
-                }
-            );
-        })
-    );
-}
-
-
-// ======================================================
-// NYOMTATÁS
-// ======================================================
-
-async function printCurrent() {
-
-    if (
-        currentPrintSongs.length === 0
-    ) {
-
-        showMessage(
-            "❌ Előbb generálj nyomtatási előnézetet."
-        );
-
-        return;
-    }
-
-
-    buildRealPrintArea(
-        currentPrintSongs
-    );
-
-
-    showMessage(
-        "QR-kódok betöltése..."
-    );
-
-
-    await waitForImages();
-
-
-    showMessage(
-        "✅ Nyomtatásra kész."
-    );
-
-
-    window.print();
-}
-
-
-// ======================================================
-// ÜZENET
-// ======================================================
-
-function showMessage(text) {
-
-    document
-        .getElementById("message")
-        .textContent =
-        text;
-}
-
-
-// ======================================================
-// ŰRLAP TÖRLÉS
-// ======================================================
-
-function clearForm() {
-
-    document
-        .getElementById("artist")
-        .value =
-        "";
-
-
-    document
-        .getElementById("title")
-        .value =
-        "";
-
-
-    document
-        .getElementById("year")
-        .value =
-        "";
-
-
-    document
-        .getElementById("youtubeUrl")
-        .value =
-        "";
-
-
-    document
-        .getElementById("maxStart")
-        .value =
-        "";
 }
 
 
@@ -1163,13 +900,13 @@ function clearForm() {
 // JSON LETÖLTÉSE
 // ======================================================
 
-function downloadJson() {
+function downloadSongsJson() {
 
     const json =
         JSON.stringify(
             songs,
             null,
-            2
+            4
         );
 
 
@@ -1178,7 +915,7 @@ function downloadJson() {
             [json],
             {
                 type:
-                    "application/json"
+                    "application/json;charset=utf-8"
             }
         );
 
@@ -1203,7 +940,15 @@ function downloadJson() {
         "songs.json";
 
 
+    document.body.appendChild(
+        link
+    );
+
+
     link.click();
+
+
+    link.remove();
 
 
     URL.revokeObjectURL(
@@ -1213,11 +958,455 @@ function downloadJson() {
 
 
 // ======================================================
+// PRINT
+// ======================================================
+
+function chunkSongs(
+    sourceSongs,
+    size = 9
+) {
+
+    const chunks =
+        [];
+
+
+    for (
+        let i = 0;
+        i < sourceSongs.length;
+        i += size
+    ) {
+
+        chunks.push(
+            sourceSongs.slice(
+                i,
+                i + size
+            )
+        );
+    }
+
+
+    return chunks;
+}
+
+
+// ======================================================
+// 9 SLOT
+// ======================================================
+
+function createSlots(
+    pageSongs
+) {
+
+    const slots =
+        new Array(9).fill(
+            null
+        );
+
+
+    pageSongs.forEach(
+        (song, index) => {
+
+            slots[index] =
+                song;
+        }
+    );
+
+
+    return slots;
+}
+
+
+// ======================================================
+// HÁTLAP TÜKRÖZÉS
+// ======================================================
+
+function getBackOrder(
+    slots,
+    flipMode
+) {
+
+    // Hosszú él
+    //
+    // 0 1 2       2 1 0
+    // 3 4 5  -->  5 4 3
+    // 6 7 8       8 7 6
+
+    const longEdge = [
+        2, 1, 0,
+        5, 4, 3,
+        8, 7, 6
+    ];
+
+
+    // Rövid él
+    //
+    // 0 1 2       6 7 8
+    // 3 4 5  -->  3 4 5
+    // 6 7 8       0 1 2
+
+    const shortEdge = [
+        6, 7, 8,
+        3, 4, 5,
+        0, 1, 2
+    ];
+
+
+    const mapping =
+        flipMode === "short"
+            ? shortEdge
+            : longEdge;
+
+
+    return mapping.map(
+        index =>
+            slots[index]
+    );
+}
+
+
+// ======================================================
+// PRINT SLOT
+// ======================================================
+
+function createPrintSlot(
+    song,
+    side
+) {
+
+    if (!song) {
+
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+
+        empty.className =
+            "print-card empty-slot";
+
+
+        return empty;
+    }
+
+
+    if (
+        side === "front"
+    ) {
+
+        return createFrontCard(
+            song,
+            "print-card"
+        );
+    }
+
+
+    return createBackCard(
+        song,
+        "print-card"
+    );
+}
+
+
+// ======================================================
+// PREVIEW SHEET
+// ======================================================
+
+function buildPreviewSheet(
+    slots,
+    side
+) {
+
+    const sheet =
+        document.createElement(
+            "div"
+        );
+
+
+    sheet.className =
+        "preview-sheet";
+
+
+    slots.forEach(
+        song => {
+
+            sheet.appendChild(
+                createPrintSlot(
+                    song,
+                    side
+                )
+            );
+        }
+    );
+
+
+    return sheet;
+}
+
+
+// ======================================================
+// PRINT PAGE
+// ======================================================
+
+function buildPrintPage(
+    slots,
+    side
+) {
+
+    const page =
+        document.createElement(
+            "div"
+        );
+
+
+    page.className =
+        "print-page";
+
+
+    slots.forEach(
+        song => {
+
+            page.appendChild(
+                createPrintSlot(
+                    song,
+                    side
+                )
+            );
+        }
+    );
+
+
+    return page;
+}
+
+
+// ======================================================
+// NYOMTATÁSI ELŐNÉZET
+// ======================================================
+
+function generatePrintPreview(
+    sourceSongs
+) {
+
+    const previewPages =
+        document.getElementById(
+            "previewPages"
+        );
+
+
+    const printArea =
+        document.getElementById(
+            "printArea"
+        );
+
+
+    previewPages.innerHTML =
+        "";
+
+
+    printArea.innerHTML =
+        "";
+
+
+    const flipMode =
+        document.getElementById(
+            "flipMode"
+        ).value;
+
+
+    const pages =
+        chunkSongs(
+            sourceSongs,
+            9
+        );
+
+
+    pages.forEach(
+        pageSongs => {
+
+            const slots =
+                createSlots(
+                    pageSongs
+                );
+
+
+            const backSlots =
+                getBackOrder(
+                    slots,
+                    flipMode
+                );
+
+
+            // ELŐNÉZET FRONT
+            previewPages.appendChild(
+                buildPreviewSheet(
+                    slots,
+                    "front"
+                )
+            );
+
+
+            // ELŐNÉZET BACK
+            previewPages.appendChild(
+                buildPreviewSheet(
+                    backSlots,
+                    "back"
+                )
+            );
+
+
+            // PRINT FRONT
+            printArea.appendChild(
+                buildPrintPage(
+                    slots,
+                    "front"
+                )
+            );
+
+
+            // PRINT BACK
+            printArea.appendChild(
+                buildPrintPage(
+                    backSlots,
+                    "back"
+                )
+            );
+        }
+    );
+}
+
+
+// ======================================================
+// TESZT
+// ======================================================
+
+function generateTestPrint() {
+
+    generatePrintPreview(
+        songs.slice(
+            0,
+            6
+        )
+    );
+}
+
+
+// ======================================================
+// ÖSSZES
+// ======================================================
+
+function generateAllPrint() {
+
+    generatePrintPreview(
+        songs
+    );
+}
+
+
+// ======================================================
+// QR KÉPEK BETÖLTÉSÉNEK MEGVÁRÁSA
+// ======================================================
+
+async function waitForImages(
+    container
+) {
+
+    const images =
+        Array.from(
+            container.querySelectorAll(
+                "img"
+            )
+        );
+
+
+    await Promise.all(
+        images.map(
+            image => {
+
+                if (
+                    image.complete
+                ) {
+
+                    return Promise.resolve();
+                }
+
+
+                return new Promise(
+                    resolve => {
+
+                        image.onload =
+                            resolve;
+
+                        image.onerror =
+                            resolve;
+                    }
+                );
+            }
+        )
+    );
+}
+
+
+// ======================================================
+// PRINT
+// ======================================================
+
+async function printCurrent() {
+
+    const printArea =
+        document.getElementById(
+            "printArea"
+        );
+
+
+    await waitForImages(
+        printArea
+    );
+
+
+    window.print();
+}
+
+
+// ======================================================
+// HTML ESCAPE
+// ======================================================
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+// ======================================================
 // GOMBOK
 // ======================================================
 
 document
-    .getElementById("addSong")
+    .getElementById(
+        "addSongButton"
+    )
     .addEventListener(
         "click",
         addSong
@@ -1225,15 +1414,19 @@ document
 
 
 document
-    .getElementById("downloadJson")
+    .getElementById(
+        "downloadJsonButton"
+    )
     .addEventListener(
         "click",
-        downloadJson
+        downloadSongsJson
     );
 
 
 document
-    .getElementById("generateTestPrint")
+    .getElementById(
+        "generateTestPrint"
+    )
     .addEventListener(
         "click",
         generateTestPrint
@@ -1241,20 +1434,14 @@ document
 
 
 document
-    .getElementById("printTest")
+    .getElementById(
+        "printTest"
+    )
     .addEventListener(
         "click",
         async () => {
 
             generateTestPrint();
-
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        300
-                    )
-            );
 
             await printCurrent();
         }
@@ -1262,7 +1449,9 @@ document
 
 
 document
-    .getElementById("generateAllPrint")
+    .getElementById(
+        "generateAllPrint"
+    )
     .addEventListener(
         "click",
         generateAllPrint
@@ -1270,40 +1459,16 @@ document
 
 
 document
-    .getElementById("printAll")
+    .getElementById(
+        "printAll"
+    )
     .addEventListener(
         "click",
         async () => {
 
             generateAllPrint();
 
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        300
-                    )
-            );
-
             await printCurrent();
-        }
-    );
-
-
-document
-    .getElementById("flipMode")
-    .addEventListener(
-        "change",
-        () => {
-
-            if (
-                currentPrintSongs.length > 0
-            ) {
-
-                generatePrintPreview(
-                    currentPrintSongs
-                );
-            }
         }
     );
 

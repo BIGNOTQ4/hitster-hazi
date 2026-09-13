@@ -15,10 +15,7 @@
       "maxStart": 210,
       "clipLength": 25
     },
-    "category": [
-      "2010s",
-      "international"
-    ]
+    "category": ["2010s", "international"]
   },
   {
     "id": "002",
@@ -36,10 +33,7 @@
       "maxStart": 200,
       "clipLength": 25
     },
-    "category": [
-      "2000s",
-      "international"
-    ]
+    "category": ["2000s", "international"]
   },
   {
     "id": "003",
@@ -50,18 +44,14 @@
       "videoId": "YVkUvmDQ3HY"
     },
     "spotify": {
-    "trackId": "7lQ8MOhq6IN2w8EYcFNSUk"
-    }
+      "trackId": "7lQ8MOhq6IN2w8EYcFNSUk"
     },
     "playback": {
       "minStart": 20,
       "maxStart": 250,
       "clipLength": 25
     },
-    "category": [
-      "2000s",
-      "international"
-    ]
+    "category": ["2000s", "international"]
   },
   {
     "id": "004",
@@ -79,10 +69,7 @@
       "maxStart": 225,
       "clipLength": 25
     },
-    "category": [
-      "2010s",
-      "international"
-    ]
+    "category": ["2010s", "international"]
   },
   {
     "id": "005",
@@ -100,62 +87,6 @@
       "maxStart": 60,
       "clipLength": 25
     },
-    "category": [
-      "test"
-    ]
-  },
-  {
-    "id": "006",
-    "artist": "Never Dull",
-    "title": "Voodoo Babe",
-    "year": 2020,
-    "youtube": {
-      "videoId": "58eiC102z7A"
-    },
-    "spotify": {
-      "trackId": ""
-    },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 120,
-      "clipLength": 25
-    },
-    "category": []
-  },
-  {
-    "id": "007",
-    "artist": "Justin Bieber",
-    "title": "Sorry",
-    "year": 2015,
-    "youtube": {
-      "videoId": "fRh_vgS2dFE"
-    },
-    "spotify": {
-      "trackId": ""
-    },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 180,
-      "clipLength": 25
-    },
-    "category": []
-  },
-  {
-    "id": "008",
-    "artist": "Avicii",
-    "title": "The Nights",
-    "year": 2014,
-    "youtube": {
-      "videoId": "UtF6Jej8yb4"
-    },
-    "spotify": {
-      "trackId": ""
-    },
-    "playback": {
-      "minStart": 20,
-      "maxStart": 150,
-      "clipLength": 25
-    },
-    "category": []
+    "category": ["test"]
   }
 ]

@@ -3,299 +3,255 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Hitster Házi – Dalkezelő</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="style.css">
+    <title>Hitster Házi – Admin</title>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
 
-        .admin {
-            width: 100%;
-            max-width: 900px;
-            margin: auto;
-            padding: 30px 20px;
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
         }
 
-        .admin-form {
-            background: rgba(255,255,255,0.08);
-            padding: 25px;
-            border-radius: 20px;
+        h1,
+        h2,
+        h3 {
+            margin-top: 0;
         }
 
-        .admin-form label {
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: #1c1c1c;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        label {
             display: block;
-            margin-top: 18px;
+            margin-top: 14px;
             margin-bottom: 6px;
-            text-align: left;
             font-weight: bold;
         }
 
-        .admin-form input,
-        .admin-form select {
+        input,
+        select,
+        button {
             width: 100%;
-            padding: 13px;
-
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.2);
-
-            background: rgba(255,255,255,0.1);
-            color: white;
-
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid #444;
             font-size: 16px;
+        }
+
+        input,
+        select {
+            background: #262626;
+            color: #fff;
         }
 
         button {
             margin-top: 12px;
-        }
-
-        #message {
-            margin: 20px 0;
+            cursor: pointer;
+            background: #fff;
+            color: #111;
             font-weight: bold;
         }
 
-        #songList {
-            margin-top: 30px;
-            text-align: left;
+        button:hover {
+            opacity: 0.9;
         }
 
-        .song-row {
+        .spotify-input {
+            border-color: #1db954;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .song-item {
+            background: #252525;
             padding: 14px;
             margin-bottom: 10px;
-
-            background: rgba(255,255,255,0.07);
-
             border-radius: 10px;
         }
 
-        .song-info {
-            margin-bottom: 10px;
+        .song-item strong {
+            font-size: 18px;
         }
 
-        .card-button {
-            padding: 10px;
+        .song-meta {
+            opacity: 0.8;
+            margin-top: 5px;
             font-size: 14px;
         }
 
-        .next-id {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 20px;
+        .spotify-ok {
+            color: #1ed760;
         }
 
+        .spotify-missing {
+            color: #ffb74d;
+        }
 
-        /* ==========================================
-           EGYEDI KÁRTYA ELŐNÉZET
-           ========================================== */
+        .song-actions {
+            margin-top: 10px;
+        }
+
+        .song-actions button {
+            width: auto;
+            margin-right: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
 
         #cardPreview {
-            display: none;
-            margin-top: 40px;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
-        .hitster-card {
-            width: 300px;
-            min-height: 430px;
-
-            margin: 20px auto;
-            padding: 25px;
-
+        .preview-card {
+            width: 63mm;
+            height: 88mm;
             background: white;
-            color: #111;
-
-            border-radius: 22px;
-
+            color: black;
+            border-radius: 4mm;
+            border: 1px solid #bbb;
+            overflow: hidden;
             display: flex;
-            flex-direction: column;
-
-            justify-content: center;
             align-items: center;
-
+            justify-content: center;
             text-align: center;
         }
 
-        .hitster-card h2 {
-            font-size: 32px;
-            margin: 0 0 5px;
+        .card-front-inner,
+        .card-back-inner {
+            width: 100%;
+            height: 100%;
+            padding: 6mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        .hitster-card .home {
-            letter-spacing: 6px;
+        .hitster-title {
+            font-size: 8mm;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .hitster-home {
+            font-size: 4mm;
             font-weight: bold;
-            margin-bottom: 25px;
+            margin-bottom: 4mm;
         }
 
-        #qrImage {
-            width: 210px;
-            height: 210px;
+        .qr-image {
+            width: 42mm;
+            height: 42mm;
+            object-fit: contain;
         }
 
         .card-id {
-            margin-top: 20px;
-
-            font-size: 24px;
+            margin-top: 3mm;
+            font-size: 5mm;
             font-weight: bold;
         }
 
-        .back-year {
-            font-size: 70px;
+        .year {
+            font-size: 16mm;
+            font-weight: 900;
+            margin-bottom: 8mm;
+        }
+
+        .artist {
+            font-size: 6mm;
             font-weight: bold;
-            margin-bottom: 35px;
+            margin-bottom: 3mm;
         }
 
-        .back-artist {
-            font-size: 24px;
-            font-weight: bold;
+        .title {
+            font-size: 5mm;
         }
-
-        .back-title {
-            margin-top: 10px;
-            font-size: 20px;
-        }
-
-
-        /* ==========================================
-           NYOMTATÁSI VEZÉRLŐ
-           ========================================== */
 
         .print-controls {
-            margin-top: 40px;
-            padding: 25px;
-
-            background: rgba(255,255,255,0.08);
-
-            border-radius: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
-
-        .print-controls label {
-            display: block;
-
-            margin-bottom: 8px;
-
-            font-weight: bold;
-        }
-
-        .print-controls select {
-            width: 100%;
-            padding: 12px;
-
-            border-radius: 10px;
-
-            font-size: 16px;
-        }
-
-
-        /* ==========================================
-           NYOMTATÁSI ELŐNÉZET
-           ========================================== */
 
         #printPreview {
-            display: none;
-            margin-top: 40px;
+            margin-top: 25px;
         }
 
-        .preview-page {
-            margin-bottom: 40px;
-        }
-
-        .preview-page h3 {
-            margin-bottom: 15px;
-        }
-
-        .card-grid {
+        .preview-sheet {
+            background: white;
+            color: black;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            padding: 12.5mm 6.5mm;
             display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 10px;
+            grid-template-columns: repeat(3, 63mm);
+            grid-template-rows: repeat(3, 88mm);
+            gap: 4mm;
+            box-shadow: 0 0 10px rgba(0,0,0,.5);
         }
 
         .print-card {
-            aspect-ratio: 63 / 88;
-
-            width: 100%;
-
-            padding: 12px;
-
+            width: 63mm;
+            height: 88mm;
+            border: 0.3mm solid #bbb;
+            overflow: hidden;
             background: white;
-            color: #111;
-
-            border: 1px solid #aaa;
-            border-radius: 12px;
-
+            color: black;
             display: flex;
-            flex-direction: column;
-
             align-items: center;
             justify-content: center;
-
             text-align: center;
-
-            overflow: hidden;
         }
 
-        .empty-card {
-            visibility: hidden;
+        .empty-slot {
+            border: none;
         }
-
-        .print-logo {
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        .print-home {
-            margin-top: 4px;
-            margin-bottom: 12px;
-
-            letter-spacing: 5px;
-
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .print-qr {
-            width: 72%;
-            max-width: 150px;
-        }
-
-        .print-id {
-            margin-top: 12px;
-
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .print-year {
-            font-size: 42px;
-            font-weight: bold;
-        }
-
-        .print-artist {
-            margin-top: 18px;
-
-            font-size: 17px;
-            font-weight: bold;
-        }
-
-        .print-title {
-            margin-top: 7px;
-
-            font-size: 14px;
-        }
-
-
-        /* ==========================================
-           VALÓDI A4 NYOMTATÁS
-           ========================================== */
 
         #printArea {
             display: none;
+        }
+
+        @media (max-width: 800px) {
+            .form-row,
+            .form-row-3,
+            .print-controls {
+                grid-template-columns: 1fr;
+            }
         }
 
         @page {
@@ -304,43 +260,32 @@
         }
 
         @media print {
-
-            body {
-                margin: 0 !important;
-                padding: 0 !important;
-
-                background: white !important;
+            body * {
+                visibility: hidden !important;
             }
 
-            body > * {
-                display: none !important;
+            #printArea,
+            #printArea * {
+                visibility: visible !important;
             }
 
             #printArea {
                 display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 210mm;
             }
 
             .print-page {
                 width: 210mm;
                 height: 297mm;
-
                 padding: 12.5mm 6.5mm;
 
-                background: white;
-
                 display: grid;
-
-                grid-template-columns:
-                    repeat(3, 63mm);
-
-                grid-template-rows:
-                    repeat(3, 88mm);
-
-                column-gap: 4mm;
-                row-gap: 4mm;
-
-                justify-content: center;
-                align-content: start;
+                grid-template-columns: repeat(3, 63mm);
+                grid-template-rows: repeat(3, 88mm);
+                gap: 4mm;
 
                 page-break-after: always;
                 break-after: page;
@@ -351,90 +296,102 @@
                 break-after: auto;
             }
 
-            .print-page .print-card {
-                width: 63mm;
-                height: 88mm;
-
-                padding: 5mm;
-
-                border: 0.3mm solid #888;
-
-                border-radius: 3mm;
-            }
-
-            .print-page .print-logo {
-                font-size: 7mm;
-            }
-
-            .print-page .print-home {
-                font-size: 3mm;
-                margin-top: 1mm;
-                margin-bottom: 4mm;
-            }
-
-            .print-page .print-qr {
-                width: 42mm;
-                height: 42mm;
-            }
-
-            .print-page .print-id {
-                font-size: 5mm;
-                margin-top: 4mm;
-            }
-
-            .print-page .print-year {
-                font-size: 15mm;
-            }
-
-            .print-page .print-artist {
-                font-size: 6mm;
-                margin-top: 7mm;
-            }
-
-            .print-page .print-title {
-                font-size: 5mm;
-                margin-top: 3mm;
+            .print-card {
+                border: 0.3mm solid #aaa;
             }
         }
-
     </style>
 </head>
 
 
 <body>
 
-<main class="admin">
+<div class="container">
 
-    <h1>HITSTER HÁZI</h1>
-
-    <p>DALKEZELŐ</p>
+    <h1>♫ HITSTER HÁZI – ADMIN</h1>
 
 
-    <!-- ==========================================
-         DAL HOZZÁADÁSA
-         ========================================== -->
+    <!-- ==================================================
+         ÚJ DAL
+         ================================================== -->
 
-    <div class="admin-form">
+    <section class="panel">
 
-        <div class="next-id">
-            Következő ID:
-            <span id="nextId">...</span>
+        <h2>Új dal hozzáadása</h2>
+
+        <p>
+            Következő kártyaszám:
+            <strong id="nextCardId">---</strong>
+        </p>
+
+
+        <div class="form-row">
+
+            <div>
+                <label for="artist">
+                    Előadó
+                </label>
+
+                <input
+                    id="artist"
+                    type="text"
+                    placeholder="Pl. Eminem"
+                >
+            </div>
+
+
+            <div>
+                <label for="title">
+                    Dal címe
+                </label>
+
+                <input
+                    id="title"
+                    type="text"
+                    placeholder="Pl. Without Me"
+                >
+            </div>
+
         </div>
 
 
-        <label>Előadó</label>
-        <input id="artist" type="text">
+        <div class="form-row">
+
+            <div>
+                <label for="year">
+                    Megjelenési év
+                </label>
+
+                <input
+                    id="year"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    placeholder="2002"
+                >
+            </div>
 
 
-        <label>Dal címe</label>
-        <input id="title" type="text">
+            <div>
+                <label for="spotifyUrl">
+                    Spotify dal link
+                </label>
+
+                <input
+                    id="spotifyUrl"
+                    class="spotify-input"
+                    type="text"
+                    placeholder="https://open.spotify.com/track/..."
+                >
+            </div>
+
+        </div>
 
 
-        <label>Megjelenési év</label>
-        <input id="year" type="number">
+        <label for="youtubeUrl">
+            YouTube URL – fallback
+        </label>
 
-
-        <label>YouTube URL</label>
         <input
             id="youtubeUrl"
             type="text"
@@ -442,59 +399,101 @@
         >
 
 
-        <label>Random kezdés – minimum (mp)</label>
-        <input id="minStart" type="number" value="20">
+        <div class="form-row-3">
+
+            <div>
+                <label for="minStart">
+                    Minimum kezdés (mp)
+                </label>
+
+                <input
+                    id="minStart"
+                    type="number"
+                    value="20"
+                    min="0"
+                >
+            </div>
 
 
-        <label>Random kezdés – maximum (mp)</label>
-        <input id="maxStart" type="number">
+            <div>
+                <label for="maxStart">
+                    Maximum kezdés (mp)
+                </label>
+
+                <input
+                    id="maxStart"
+                    type="number"
+                    value="180"
+                    min="0"
+                >
+            </div>
 
 
-        <label>Részlet hossza (mp)</label>
-        <input id="clipLength" type="number" value="25">
+            <div>
+                <label for="clipLength">
+                    Részlet hossza (mp)
+                </label>
+
+                <input
+                    id="clipLength"
+                    type="number"
+                    value="25"
+                    min="1"
+                >
+            </div>
+
+        </div>
 
 
-        <button id="addSong">
+        <button id="addSongButton">
             + DAL HOZZÁADÁSA
         </button>
 
-    </div>
+    </section>
 
 
-    <div id="message"></div>
+    <!-- ==================================================
+         SONGS.JSON
+         ================================================== -->
+
+    <section class="panel">
+
+        <h2>Daladatbázis</h2>
+
+        <button id="downloadJsonButton">
+            ⬇ SONGS.JSON LETÖLTÉSE
+        </button>
+
+        <div id="songList"></div>
+
+    </section>
 
 
-    <!-- ==========================================
-         DALOK
-         ========================================== -->
+    <!-- ==================================================
+         KÁRTYA ELŐNÉZET
+         ================================================== -->
 
-    <h2>Dalok</h2>
+    <section class="panel">
 
-    <div id="songList">
-        Betöltés...
-    </div>
+        <h2>Kártya előnézet</h2>
+
+        <div id="cardPreview">
+            Válassz egy dalt a listából.
+        </div>
+
+    </section>
 
 
-    <button id="downloadJson">
-        ↓ SONGS.JSON LETÖLTÉSE
-    </button>
+    <!-- ==================================================
+         NYOMTATÁS
+         ================================================== -->
 
+    <section class="panel">
 
-    <!-- ==========================================
-         NYOMTATÁSI TESZT
-         ========================================== -->
-
-    <section class="print-controls">
-
-        <h2>Kétoldalas nyomtatás</h2>
-
-        <p>
-            Első teszthez az első 6 kártyát használjuk.
-        </p>
-
+        <h2>Nyomtatás</h2>
 
         <label for="flipMode">
-            Papír megfordítása
+            Kétoldalas nyomtatás fordítása
         </label>
 
         <select id="flipMode">
@@ -510,106 +509,39 @@
         </select>
 
 
-        <button id="generateTestPrint">
-            🧪 6 KÁRTYÁS TESZT GENERÁLÁSA
-        </button>
+        <div class="print-controls">
 
+            <button id="generateTestPrint">
+                6 KÁRTYÁS TESZT ELŐNÉZET
+            </button>
 
-        <button id="printTest">
-            🖨️ TESZT NYOMTATÁSA
-        </button>
+            <button id="printTest">
+                6 KÁRTYÁS TESZT NYOMTATÁSA
+            </button>
 
+            <button id="generateAllPrint">
+                ÖSSZES KÁRTYA ELŐNÉZETE
+            </button>
 
-        <button id="generateAllPrint">
-            🃏 ÖSSZES KÁRTYA NYOMTATÁSI ELŐNÉZETE
-        </button>
-
-
-        <button id="printAll">
-            🖨️ ÖSSZES KÁRTYA NYOMTATÁSA
-        </button>
-
-    </section>
-
-
-    <!-- ==========================================
-         EGYEDI KÁRTYA
-         ========================================== -->
-
-    <section id="cardPreview">
-
-        <h2>Kártya előnézet</h2>
-
-
-        <div class="hitster-card">
-
-            <h2>
-                ♫ HITSTER
-            </h2>
-
-            <div class="home">
-                HÁZI
-            </div>
-
-            <img
-                id="qrImage"
-                alt="QR kód"
-            >
-
-            <div
-                id="frontCardId"
-                class="card-id">
-            </div>
+            <button id="printAll">
+                ÖSSZES KÁRTYA NYOMTATÁSA
+            </button>
 
         </div>
 
 
-        <div class="hitster-card">
+        <div id="printPreview">
 
-            <div
-                id="backYear"
-                class="back-year">
-            </div>
-
-            <div
-                id="backArtist"
-                class="back-artist">
-            </div>
-
-            <div
-                id="backTitle"
-                class="back-title">
-            </div>
-
-            <div
-                id="backCardId"
-                class="card-id">
-            </div>
+            <div id="previewPages"></div>
 
         </div>
 
     </section>
 
-
-    <!-- ==========================================
-         NYOMTATÁSI ELŐNÉZET
-         ========================================== -->
-
-    <section id="printPreview">
-
-        <h2>Nyomtatási előnézet</h2>
-
-        <div id="previewPages"></div>
-
-    </section>
-
-</main>
+</div>
 
 
-<!-- ==========================================
-     CSAK NYOMTATÁSKOR LÁTSZIK
-     ========================================== -->
-
+<!-- Tényleges nyomtatási terület -->
 <div id="printArea"></div>
 
 
