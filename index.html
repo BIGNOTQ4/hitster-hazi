@@ -3,31 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111111">
+
     <title>Hitster Házi</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <main class="game">
-        <h1>🎵 HITSTER HÁZI</h1>
 
-        <p id="cardNumber">Kártya betöltése...</p>
+        <div class="logo">♫</div>
 
-        <button id="playButton" disabled>
-            ▶ ZENE INDÍTÁSA
-        </button>
+        <h1>HITSTER</h1>
+        <div class="subtitle">HÁZI</div>
 
-        <div id="timer">25</div>
+        <div class="card">
+            <p class="card-label">ZENEI KÁRTYA</p>
 
-        <button id="stopButton" disabled>
-            ■ STOP
-        </button>
+            <p id="cardNumber">Betöltés...</p>
 
-        <p id="status">Betöltés...</p>
+            <div class="timer-wrapper">
+                <span id="timer">25</span>
+                <small>másodperc</small>
+            </div>
 
-        <!-- A YouTube videót elrejtjük a játékos elől -->
-        <div id="player"></div>
+            <button id="playButton" class="play-button" disabled>
+                ▶ ZENE INDÍTÁSA
+            </button>
+
+            <button id="stopButton" class="stop-button" disabled>
+                ■ STOP
+            </button>
+
+            <p id="status">Betöltés...</p>
+        </div>
+
+        <p class="hint">
+            Hallgasd meg a részletet, majd helyezd el a kártyát az idővonalon!
+        </p>
+
+        <!-- YouTube Player: működik, de a játékos nem látja -->
+        <div class="hidden-player">
+            <div id="player"></div>
+        </div>
+
     </main>
 
     <script src="https://www.youtube.com/iframe_api"></script>
